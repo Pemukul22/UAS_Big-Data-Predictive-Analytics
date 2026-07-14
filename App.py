@@ -8,7 +8,7 @@ import statsmodels.api as sm
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
 # --- 1. KONFIGURASI & CUSTOM CSS (SAAS LOOK) ---
-st.set_page_config(page_title="BTC Analytics Hub", page_icon="", layout="wide")
+st.set_page_config(page_title="BTC Analytics Hub", page_icon="📈", layout="wide")
 
 # Custom CSS untuk tampilan kartu, font, dan menghilangkan elemen bawaan Streamlit yang kaku
 st.markdown("""
@@ -72,7 +72,7 @@ y_pred = model.predict(X_test_sm)
 residuals = y_test - y_pred
 
 # --- 3. HEADER & KPI OVERVIEW ---
-st.title(""Dashboard Prediksi Bitcoins")
+st.title("Dashboard Prediksi Bitcoins")
 st.markdown("<p style='color: #64748B; font-size: 1.1rem; margin-top: -10px; margin-bottom: 24px;'>Platform analisis regresi historis dan simulasi skenario harga Bitcoin secara real-time.</p>", unsafe_allow_html=True)
 
 # Top KPI Section (Langsung memberi konteks ke pengguna tanpa tabel mentah yang membosankan)
@@ -95,9 +95,9 @@ st.markdown("<br>", unsafe_allow_html=True)
 
 # --- 4. TABS STRUKTUR YANG BERSIH ---
 tab_simulasi, tab_visual, tab_diagnostik = st.tabs([
-    "Simulator Skenario", 
-    "Analisis Visual & Korelasi", 
-    "Diagnostik Statistik (OLS)"
+    "🎯 Simulator Skenario", 
+    "📊 Analisis Visual & Korelasi", 
+    "🔬 Diagnostik Statistik (OLS)"
 ])
 
 # ==========================================
@@ -139,9 +139,9 @@ with tab_simulasi:
             st.divider()
             st.markdown("**Catatan Analis:**")
             if delta_open >= 0:
-                st.write("Skenario parameter ini mengindikasikan tekanan beli yang dominan, mendorong harga penutupan lebih tinggi dari pembukaan.")
+                st.write("📈 Skenario parameter ini mengindikasikan tekanan beli yang dominan, mendorong harga penutupan lebih tinggi dari pembukaan.")
             else:
-                st.write("Skenario ini memperlihatkan koreksi harian, di mana batas terendah (*Low*) menarik rata-rata penutupan ke zona merah.")
+                st.write("📉 Skenario ini memperlihatkan koreksi harian, di mana batas terendah (*Low*) menarik rata-rata penutupan ke zona merah.")
             
             st.caption("Prediksi dihitung secara instan menggunakan bobot koefisien OLS tanpa intervensi manual.")
 
@@ -149,7 +149,6 @@ with tab_simulasi:
 # TAB 2: VISUALISASI DATA (FINTECH STYLE)
 # ==========================================
 with tab_visual:
-    # Set styling matplotlib agar bersih minimalis (tanpa kotak hitam atau background abu-abu Google Colab)
     plt.style.use('default')
     plt.rcParams['font.sans-serif'] = 'Inter, Arial, sans-serif'
     plt.rcParams['axes.edgecolor'] = '#E2E8F0'
@@ -161,7 +160,6 @@ with tab_visual:
         st.markdown("#### Matriks Korelasi Pasar")
         fig1, ax1 = plt.subplots(figsize=(6, 4.5))
         corr_matrix = df[['Open', 'High', 'Low', 'Close', 'Volume']].corr()
-        # Menggunakan palette 'Blues' bergaya minimalis
         sns.heatmap(corr_matrix, annot=True, cmap='Blues', fmt=".3f", cbar=False, linewidths=1, linecolor='white', annot_kws={"size": 10, "weight": "bold"}, ax=ax1)
         ax1.tick_params(colors='#475569', size=0)
         st.pyplot(fig1)
@@ -212,7 +210,6 @@ with tab_diagnostik:
     
     with col_d1:
         st.write("**Model OLS Regression Output**")
-        # Menampilkan resume dengan code block agar monospaced dan rapi untuk auditor statistik
         st.code(model.summary().as_text(), language="text")
         
     with col_d2:
@@ -226,7 +223,7 @@ with tab_diagnostik:
             use_container_width=True,
             hide_index=True
         )
-        st.caption("**Rule of Thumb:** Pada data *time-series* finansial harian (OHLC), skor VIF antar harga (Open, High, Low) umumnya sangat tinggi karena pergerakannya secara alami saling mengikuti (*highly co-integrated*).")
+        st.caption("💡 **Rule of Thumb:** Pada data *time-series* finansial harian (OHLC), skor VIF antar harga (Open, High, Low) umumnya sangat tinggi karena pergerakannya secara alami saling mengikuti (*highly co-integrated*).")
         
         st.divider()
         st.write("**Data Historis Mentah (Sample)**")
