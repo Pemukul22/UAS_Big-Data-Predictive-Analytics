@@ -111,3 +111,86 @@ with col4:
     ax4.set_ylabel('Frekuensi')
     ax4.grid(True, linestyle=':', alpha=0.7)
     st.pyplot(fig4)
+
+st.divider()
+
+# --- BAGIAN 4: SIMULASI & PREDIKSI (WHAT-IF ANALYSIS) ---
+st.header("4. Simulasi dan Prediksi Harga (What-If Analysis)")
+st.markdown("Uji model regresi dengan memasukkan nilai skenario **Open**, **High**, **Low**, dan **Volume** Anda sendiri untuk melihat estimasi harga penutupan (**Close**) secara *real-time*.")
+
+# Ambil data hari terakhir sebagai nilai default agar realistis
+latest_data = df.iloc[-1]
+
+col_in1, col_in2, col_in3, col_in4 = st.columns(4)
+
+with col_in1:
+    input_open = st.number_input(
+        "Harga Open ($)", 
+        min_value=0.0, 
+        value=float(latest_data['Open']), 
+        step=100.0, 
+        format="%.2f",
+        help="Masukkan asumsi harga pembukaan"
+    )
+with col_in2:
+    input_high = st.number_input(
+        "Harga High ($)", 
+        min_value=0.0, 
+        value=float(latest_data['High']), 
+        step=100.0, 
+        format="%.2f",
+        help="Masukkan asumsi harga tertinggi"
+    )
+with col_in3:
+    input_low = st.number_input(
+        "Harga Low ($)", 
+        min_value=0.0, 
+        value=float(latest_data['Low']), 
+        step=100.0, 
+        format="%.2f",
+        help="Masukkan asumsi harga terendah"
+    )
+with col_in4:
+    input_volume = st.number_input(
+        "Volume Transaksi", 
+        min_value=0.0, 
+        value=float(latest_data['Volume']), 
+        step=1000000.0, 
+        format="%.0f",
+        help="Masukkan asumsi volume perdagangan harian"
+    )
+
+# Siapkan DataFrame baru sesuai format yang diminta statsmodels (menambahkan kolom konstanta)
+input_df = pd.DataFrame({
+    'const': [1.0],
+    'Open': [input_open],
+    'High': [input_high],
+    'Low': [input_low],
+    'Volume': [input_volume]
+})
+
+# Eksekusi prediksi dengan model OLS yang telah dilatih
+pred_close = model.predict(input_df)[0]
+selisih_open_close = pred_close - input_open
+
+# Tampilkan hasil prediksi
+st.subheader("💡 Hasil Estimasi Model")
+col_res1, col_res2 = st.columns([1, 2])
+
+with col_res1:
+    st.metric(
+        label="Prediksi Harga Close", 
+        value=f"${pred_close:,.2f}", 
+        delta=f"{selisih_open_close:,.2f} dari harga Open"
+    )
+
+with col_res2:
+    # Memberikan interpretasi otomatis berdasarkan hasil hitungan
+    arah_tren = "mengalami KENAIKAN" if selisih_open_close >= 0 else "mengalami PENURUNAN"
+    st.info(
+        f"**Analisis Skenario:**\n\n"
+        f"Berdasarkan parameter yang dimasukkan, model memprediksi harga Bitcoin akan **{arah_tren}** sebesar "
+        f"**${abs(selisih_open_close):,.2f}** dari harga pembukaan (Open). "
+        f"Perlu diingat bahwa pada regresi linier harga Bitcoin, variabel **High** dan **Low** umumnya memiliki bobot koefisien "
+        f"paling dominan dalam menarik arah prediksi akhir."
+    )
