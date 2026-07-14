@@ -71,7 +71,7 @@ residuals = y_test - y_pred
 
 # --- 3. HEADER & KPI OVERVIEW ---
 st.title("Dashboard Prediksi Bitcoin")
-st.markdown("<p style='color: #64748B; font-size: 1.1rem; margin-top: -10px; margin-bottom: 24px;'>Platform analisis regresi historis dan simulasi skenario harga Bitcoin secara real-time.</p>", unsafe_allow_html=True)
+st.markdown("<p style='color: #64748B; font-size: 1.1rem; margin-top: -10px; margin-bottom: 24px;'>Platform analisis regresi historis dan simulasi skenario harga Bitcoin.</p>", unsafe_allow_html=True)
 
 # Top KPI Section
 latest_data = df.iloc[-1]
