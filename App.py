@@ -87,7 +87,7 @@ y_pred = model.predict(X_test_sm)
 residuals = y_test - y_pred
 
 # --- 3. HEADER & KPI OVERVIEW ---
-st.title("Dashboard Prediksi Bitcoin (Model OLS)")
+st.title("Dashboard Analisis Prediksi Bitcoin")
 st.markdown("<p style='color: #64748B; font-size: 1.1rem; margin-top: -10px; margin-bottom: 24px;'>Platform analisis regresi historis berbasis fitur lag (H-1).</p>", unsafe_allow_html=True)
 
 latest_data = df_model.iloc[-1]
