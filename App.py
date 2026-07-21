@@ -56,26 +56,26 @@ def load_data():
 
 df_raw = load_data()
 
-# --- PREPARASI MODEL OLS YANG SUDAH DIPERBAIKI (TIDAK OVERFITTING & LEAKAGE) ---
+# --- PERSIAPAN MODEL OLS ---
 # 1. Feature Engineering: Gunakan Lag t-1 (Data Hari Sebelumnya) untuk memprediksi Close hari ini
 df_model = df_raw.copy()
 df_model['Prev_Close'] = df_model['Close'].shift(1)
 df_model['Prev_Open'] = df_model['Open'].shift(1)
 df_model['Prev_Volume'] = df_model['Volume'].shift(1)
 
-# Fitur volatilitas & momentum (Mengurangi Multikolinearitas Ekstrem)
+# Fitur volatilitas & momentum
 df_model['Prev_Volatility'] = df_model['High'].shift(1) - df_model['Low'].shift(1)
 df_model['Prev_Change'] = df_model['Close'].shift(1) - df_model['Open'].shift(1)
 
-# Hapus NaN akibat fungsi shift()
+# Hapus baris NaN akibat fungsi shift()
 df_model = df_model.dropna().reset_index(drop=True)
 
 # 2. Definisikan Variabel Independen (X) dan Dependen (y)
 X = df_model[['Prev_Close', 'Prev_Volatility', 'Prev_Change', 'Prev_Volume']]
 y = df_model['Close']
 
-# 3. Split Data Time-Series (WAJIB shuffle=False agar tidak bocor masa depan ke masa lalu)
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42, shuffle=False)
+# 3. Split Data Time-Series (shuffle=False agar urutan waktu tetap terjaga)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, shuffle=False)
 
 # 4. Training OLS Model
 X_train_sm = sm.add_constant(X_train)
@@ -87,8 +87,8 @@ y_pred = model.predict(X_test_sm)
 residuals = y_test - y_pred
 
 # --- 3. HEADER & KPI OVERVIEW ---
-st.title("Dashboard Prediksi Bitcoin (Model OLS Validasi)")
-st.markdown("<p style='color: #64748B; font-size: 1.1rem; margin-top: -10px; margin-bottom: 24px;'>Platform analisis regresi historis berbasis Lag-Features (Bebas Look-ahead Bias & Overfitting).</p>", unsafe_allow_html=True)
+st.title("Dashboard Prediksi Bitcoin (Model OLS)")
+st.markdown("<p style='color: #64748B; font-size: 1.1rem; margin-top: -10px; margin-bottom: 24px;'>Platform analisis regresi historis berbasis fitur lag (H-1).</p>", unsafe_allow_html=True)
 
 latest_data = df_model.iloc[-1]
 prev_data = df_model.iloc[-2]
@@ -101,7 +101,7 @@ with kpi1:
 with kpi2:
     st.metric("Rentang Periode", f"{df_model['Date'].dt.year.min()} - {df_model['Date'].dt.year.max()}", f"{len(df_model):,} Hari Observasi", delta_color="off")
 with kpi3:
-    st.metric("Akurasi Model (R²)", f"{model.rsquared * 100:.2f}%", "Valid (Non-Overfit)", delta_color="normal")
+    st.metric("R² Model", f"{model.rsquared * 100:.2f}%", delta_color="off")
 with kpi4:
     st.metric("Rata-rata Volume", f"{df_model['Volume'].mean()/1e9:.2f}B", "USD / Hari", delta_color="off")
 
@@ -120,7 +120,7 @@ tab_simulasi, tab_visual, tab_diagnostik = st.tabs([
 with tab_simulasi:
     st.markdown("""
     <div class="custom-box">
-        <strong>Ruang Simulasi (Validasi Ilmiah):</strong> Karena memprediksi harga hari ini (H) tidak boleh menggunakan data H yang belum selesai, simulasi ini memproyeksikan harga <strong>Close Hari Ini</strong> berdasarkan kondisi parameter pasar di <strong>Hari Sebelumnya (H-1)</strong>.
+        <strong>Ruang Simulasi:</strong> Karena memprediksi harga hari ini (H) tidak boleh menggunakan data H yang belum selesai, simulasi ini memproyeksikan harga <strong>Close Hari Ini</strong> berdasarkan kondisi parameter pasar di <strong>Hari Sebelumnya (H-1)</strong>.
     </div>
     """, unsafe_allow_html=True)
     
@@ -161,13 +161,13 @@ with tab_simulasi:
             st.markdown(f"<p style='color: {color_delta}; font-weight: 600; font-size: 1.1rem; margin-top: 4px;'>{sign_delta}${delta_close:,.2f} dari Close H-1</p>", unsafe_allow_html=True)
             
             st.divider()
-            st.markdown("**Catatan Analis (Bebas Overfitting):**")
+            st.markdown("**Catatan Analis:**")
             if delta_close >= 0:
                 st.write("Model mengidentifikasi momentum positif dari kombinasi harga penutupan dan volatilitas hari sebelumnya, memproyeksikan apresiasi harga untuk hari ini.")
             else:
                 st.write("Tekanan jual atau koreksi dari volatilitas H-1 mengindikasikan kecenderungan penurunan pada penutupan hari ini.")
             
-            st.caption("Prediksi dihitung secara logis menggunakan koefisien OLS tanpa membocorkan data masa depan (No Look-ahead Bias).")
+            st.caption("Prediksi dihitung menggunakan koefisien OLS berdasarkan parameter pasar H-1.")
 
 # ==========================================
 # TAB 2: VISUALISASI DATA
@@ -203,7 +203,7 @@ with tab_visual:
     with col_v2:
         st.markdown("#### Presisi Model pada Data Uji (Out-of-Sample)")
         fig2, ax2 = plt.subplots(figsize=(6, 4.5))
-        ax2.scatter(y_test, y_pred, alpha=0.5, color='#0EA5E9', label='Data Uji (Masa Depan)', edgecolors='none', s=25)
+        ax2.scatter(y_test, y_pred, alpha=0.5, color='#0EA5E9', label='Data Uji', edgecolors='none', s=25)
         ax2.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color='#EF4444', linestyle='--', lw=1.5, label='Garis Presisi 100%')
         ax2.set_xlabel('Aktual (Close USD)', color='#64748B', fontsize=9)
         ax2.set_ylabel('Prediksi (Close USD)', color='#64748B', fontsize=9)
@@ -233,7 +233,7 @@ with tab_diagnostik:
     col_d1, col_d2 = st.columns([1.5, 1], gap="large")
     
     with col_d1:
-        st.write("**Model OLS Regression Output (Setelah Perbaikan)**")
+        st.write("**Model OLS Regression Output**")
         st.code(model.summary().as_text(), language="text")
         
     with col_d2:
@@ -247,7 +247,7 @@ with tab_diagnostik:
             use_container_width=True,
             hide_index=True
         )
-        st.success("✔ **VIF Sudah Sehat!** Mengganti OHLC mentah dengan fitur Volatilitas & Momentum telah mengatasi masalah multikolinearitas ekstrem dan overfitting yang ditegur dosen.")
+        st.info("Nilai VIF di bawah 5 mengindikasikan tidak ada masalah multikolinearitas serius antar fitur.")
         
         st.divider()
         st.write("**Data Historis Setelah Feature Engineering (Sample)**")
